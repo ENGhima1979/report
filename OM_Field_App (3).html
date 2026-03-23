@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0a2540">
+<title>O&M Field — تطبيق الفني الميداني</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>
+:root{--pr:#0a2540;--pr2:#0f3460;--ac:#f59e0b;--gr:#10b981;--danger:#ef4444;--bd:#e2e8f0;--bg:#f0f4f8;--tx:#1e293b;--mt:#64748b;}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{font-family:'Cairo',sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;max-width:480px;margin:0 auto;}
+html{background:#0a2540;}
+
+#loginScreen{position:fixed;inset:0;background:linear-gradient(160deg,#0a2540,#0f3460 50%,#1a4a7a);display:flex;align-items:center;justify-content:center;padding:20px;z-index:900;}
+.login-card{background:#fff;border-radius:20px;padding:32px 28px;width:100%;max-width:360px;box-shadow:0 20px 60px rgba(0,0,0,.4);}
+.login-logo{text-align:center;margin-bottom:24px;}
+.login-ico{width:64px;height:64px;background:linear-gradient(135deg,var(--ac),#f97316);border-radius:18px;display:grid;place-items:center;font-size:28px;margin:0 auto 10px;}
+.login-title{font-size:1.2rem;font-weight:900;color:var(--pr);}
+.login-sub{font-size:.75rem;color:var(--mt);}
+.lf{margin-bottom:14px;}
+.lf label{display:block;font-weight:700;font-size:.78rem;color:var(--pr);margin-bottom:5px;}
+.lf input,.lf select{width:100%;border:2px solid var(--bd);border-radius:11px;padding:12px 14px;font-family:'Cairo',sans-serif;font-size:.9rem;outline:none;color:var(--tx);}
+.lf input:focus,.lf select:focus{border-color:var(--ac);}
+.login-btn{width:100%;padding:14px;background:linear-gradient(135deg,var(--ac),#f97316);color:#fff;border:none;border-radius:12px;font-family:'Cairo',sans-serif;font-weight:700;font-size:1rem;cursor:pointer;margin-top:6px;}
+.login-err{background:#fee2e2;border:1px solid #fca5a5;border-radius:8px;padding:10px;color:#dc2626;font-size:.75rem;margin-top:10px;display:none;}
+
+#app{display:none;min-height:100vh;flex-direction:column;}
+#app.show{display:flex;}
+
+.app-hdr{background:var(--pr);padding:14px 18px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.3);}
+.hdr-brand{display:flex;align-items:center;gap:10px;}
+.hdr-ico{width:36px;height:36px;background:linear-gradient(135deg,var(--ac),#f97316);border-radius:9px;display:grid;place-items:center;font-size:16px;}
+.hdr-title{color:#fff;font-size:.88rem;font-weight:700;}
+.hdr-sub{color:rgba(255,255,255,.5);font-size:.65rem;}
+.hdr-user{display:flex;align-items:center;gap:8px;}
+.hdr-av{width:32px;height:32px;border-radius:50%;background:var(--ac);display:grid;place-items:center;font-size:14px;font-weight:700;color:#fff;}
+.logout-btn{background:rgba(239,68,68,.2);border:1px solid rgba(239,68,68,.3);color:#fca5a5;padding:4px 10px;border-radius:6px;font-family:'Cairo',sans-serif;font-size:.65rem;cursor:pointer;}
+
+.tab-bar{background:#fff;border-top:1px solid var(--bd);padding:8px 4px 12px;display:grid;grid-template-columns:repeat(3,1fr);position:fixed;bottom:0;left:0;right:0;max-width:480px;margin:0 auto;z-index:100;box-shadow:0 -2px 12px rgba(0,0,0,.08);}
+.tab-btn{display:flex;flex-direction:column;align-items:center;gap:3px;border:none;background:transparent;cursor:pointer;padding:6px 4px;border-radius:8px;transition:all .2s;}
+.tab-btn.active .tab-ico{color:var(--pr);}
+.tab-btn.active .tab-lbl{color:var(--pr);font-weight:700;}
+.tab-ico{font-size:22px;color:var(--mt);}
+.tab-lbl{font-size:.58rem;color:var(--mt);font-family:'Cairo',sans-serif;}
+
+.main-content{flex:1;overflow-y:auto;padding:16px 14px 90px;}
+
+.view{display:none;}
+.view.active{display:block;animation:fadeIn .2s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+
+.capture-card{background:#fff;border-radius:16px;padding:18px;margin-bottom:14px;box-shadow:0 2px 12px rgba(0,0,0,.06);border:1px solid var(--bd);}
+.card-title{font-weight:700;color:var(--pr);font-size:.88rem;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.mf{margin-bottom:12px;}
+.mf label{display:block;font-weight:600;font-size:.76rem;color:var(--pr);margin-bottom:5px;}
+.mf input,.mf select,.mf textarea{width:100%;border:1.5px solid var(--bd);border-radius:10px;padding:11px 13px;font-family:'Cairo',sans-serif;font-size:.85rem;color:var(--tx);outline:none;transition:border-color .2s;background:#f8fafc;}
+.mf input:focus,.mf select:focus,.mf textarea:focus{border-color:var(--ac);background:#fff;}
+.mf textarea{resize:none;min-height:75px;}
+.mf select option{font-family:'Cairo',sans-serif;}
+
+.cam-zone{background:linear-gradient(135deg,#f0f4f8,#e8eef5);border:2px dashed #94a3b8;border-radius:14px;padding:28px 20px;text-align:center;cursor:pointer;transition:all .25s;}
+.cam-zone:active{transform:scale(.98);}
+.cam-zone .cam-ico{font-size:48px;margin-bottom:10px;}
+.cam-zone p{color:#475569;font-weight:600;font-size:.9rem;}
+.cam-zone small{color:#94a3b8;font-size:.75rem;}
+.cam-zone-or{display:flex;align-items:center;gap:10px;margin:12px 0;}
+.cam-zone-or::before,.cam-zone-or::after{content:'';flex:1;height:1px;background:var(--bd);}
+.cam-zone-or span{color:var(--mt);font-size:.72rem;}
+.cam-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px;}
+.cam-btn{padding:12px;border-radius:12px;border:none;font-family:'Cairo',sans-serif;font-weight:700;font-size:.82rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;transition:all .2s;}
+.cam-btn:active{transform:scale(.97);}
+.cam-camera{background:linear-gradient(135deg,var(--pr),var(--pr2));color:#fff;box-shadow:0 4px 14px rgba(10,37,64,.3);}
+.cam-gallery{background:linear-gradient(135deg,var(--ac),#f97316);color:#fff;box-shadow:0 4px 14px rgba(245,158,11,.3);}
+
+.photos-preview{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px;}
+.ph-item{position:relative;border-radius:12px;overflow:hidden;background:#f0f4f8;}
+.ph-item img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block;}
+.ph-overlay{position:absolute;inset:0;background:linear-gradient(0deg,rgba(0,0,0,.65) 0%,transparent 50%);}
+.ph-ts{position:absolute;bottom:6px;right:6px;background:rgba(0,0,0,.6);color:#fff;font-size:.58rem;padding:2px 7px;border-radius:5px;}
+.ph-num{position:absolute;top:6px;right:6px;background:var(--pr);color:#fff;width:22px;height:22px;border-radius:6px;font-size:.6rem;font-weight:700;display:grid;place-items:center;}
+.ph-rm{position:absolute;top:6px;left:6px;background:rgba(239,68,68,.85);border:none;color:#fff;width:24px;height:24px;border-radius:50%;font-size:11px;cursor:pointer;display:grid;place-items:center;}
+.ph-note{padding:8px 10px;background:#fff;}
+.ph-note input{width:100%;border:none;border-top:1px solid var(--bd);padding:6px 4px;font-family:'Cairo',sans-serif;font-size:.75rem;color:var(--tx);outline:none;background:transparent;}
+.ph-note input::placeholder{color:#94a3b8;}
+
+.wtype-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;}
+.wtype-btn{border:2px solid var(--bd);background:#f8fafc;border-radius:10px;padding:10px 8px;font-family:'Cairo',sans-serif;font-size:.72rem;font-weight:700;cursor:pointer;text-align:center;color:var(--mt);transition:all .2s;}
+.wtype-btn:active{transform:scale(.96);}
+.wtype-btn.active-p{border-color:#10b981;background:rgba(16,185,129,.1);color:#10b981;}
+.wtype-btn.active-c{border-color:#f59e0b;background:rgba(245,158,11,.1);color:#c57e09;}
+.wtype-btn.active-e{border-color:#ef4444;background:rgba(239,68,68,.1);color:#dc2626;}
+.wtype-btn.active-i{border-color:#3b82f6;background:rgba(59,130,246,.1);color:#2563eb;}
+
+.send-section{background:#fff;border-radius:16px;padding:16px;margin-top:14px;border:1px solid var(--bd);box-shadow:0 2px 12px rgba(0,0,0,.06);}
+.send-summary{background:#f8fafc;border-radius:10px;padding:12px;margin-bottom:12px;border:1px solid var(--bd);}
+.ss-item{display:flex;align-items:center;gap:10px;padding:5px 0;border-bottom:1px solid var(--bd);}
+.ss-item:last-child{border-bottom:none;}
+.ss-ico{font-size:18px;flex-shrink:0;}
+.ss-lbl{color:var(--mt);font-size:.72rem;flex:1;}
+.ss-val{font-weight:700;color:var(--pr);font-size:.78rem;}
+.send-btn{width:100%;padding:15px;background:linear-gradient(135deg,var(--gr),#059669);color:#fff;border:none;border-radius:12px;font-family:'Cairo',sans-serif;font-weight:700;font-size:.95rem;cursor:pointer;box-shadow:0 4px 16px rgba(16,185,129,.35);display:flex;align-items:center;justify-content:center;gap:9px;transition:all .2s;}
+.send-btn:active{transform:scale(.97);}
+.send-btn:disabled{opacity:.5;cursor:not-allowed;}
+
+.hist-item{background:#fff;border-radius:14px;padding:14px 16px;margin-bottom:10px;border:1px solid var(--bd);box-shadow:0 1px 6px rgba(0,0,0,.05);}
+.hi-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px;}
+.hi-proj{font-weight:700;color:var(--pr);font-size:.84rem;}
+.hi-date{color:var(--mt);font-size:.68rem;}
+.hi-cls{padding:2px 9px;border-radius:8px;font-size:.62rem;font-weight:700;}
+.hi-stats{display:flex;gap:12px;margin-top:8px;}
+.hi-stat{font-size:.68rem;color:var(--mt);display:flex;align-items:center;gap:4px;}
+.hi-stat strong{color:var(--tx);}
+.hi-photos{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-top:8px;}
+.hi-photo{width:100%;aspect-ratio:1;object-fit:cover;border-radius:6px;}
+.hi-empty{text-align:center;padding:40px 20px;color:#94a3b8;}
+.hi-empty-ico{font-size:48px;margin-bottom:10px;opacity:.4;}
+
+.status-card{background:#fff;border-radius:16px;padding:20px;margin-bottom:14px;border:1px solid var(--bd);box-shadow:0 2px 12px rgba(0,0,0,.06);}
+.sc-title{font-weight:700;color:var(--pr);font-size:.88rem;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.stat-box{background:linear-gradient(135deg,#f8fafc,#f0f4f8);border-radius:12px;padding:16px;text-align:center;border:1px solid var(--bd);}
+.stat-val{font-size:1.6rem;font-weight:900;color:var(--pr);line-height:1;}
+.stat-lbl{font-size:.68rem;color:var(--mt);margin-top:4px;}
+.connection-status{display:flex;align-items:center;gap:10px;padding:12px 16px;border-radius:12px;margin-bottom:12px;}
+.cs-online{background:#f0fdf4;border:1px solid #bbf7d0;}
+.cs-offline{background:#fff7ed;border:1px solid #fed7aa;}
+.cs-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.cs-dot-on{background:#10b981;box-shadow:0 0 0 3px rgba(16,185,129,.25);}
+.cs-dot-off{background:#f59e0b;animation:pulse 1.5s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.cs-text{font-size:.78rem;font-weight:600;}
+.cs-text-on{color:#166534;}
+.cs-text-off{color:#92400e;}
+
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(60px);background:#1e293b;color:#fff;padding:10px 20px;border-radius:11px;font-size:.78rem;font-weight:600;z-index:999;transition:transform .4s cubic-bezier(.34,1.56,.64,1);text-align:center;white-space:nowrap;}
+.toast.show{transform:translateX(-50%) translateY(0);}
+
+.up-overlay{position:fixed;inset:0;background:rgba(10,37,64,.8);z-index:800;display:none;flex-direction:column;align-items:center;justify-content:center;gap:16px;}
+.up-overlay.show{display:flex;}
+.up-box{background:#fff;border-radius:18px;padding:28px 36px;text-align:center;width:280px;}
+.up-ico{font-size:42px;margin-bottom:10px;}
+.up-title{font-weight:700;color:var(--pr);font-size:.95rem;margin-bottom:6px;}
+.up-sub{color:var(--mt);font-size:.74rem;}
+.up-prog{height:6px;background:#e2e8f0;border-radius:10px;margin-top:14px;overflow:hidden;}
+.up-prog-fill{height:100%;background:linear-gradient(90deg,var(--ac),var(--gr));transition:width .5s;}
+
+#cameraInput,#galleryInput{display:none;}
+</style>
+</head>
+<body>
+
+<div id="loginScreen">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="login-ico">🔧</div>
+      <div class="login-title">O&M Field</div>
+      <div class="login-sub">تطبيق الفني الميداني — رفع الصور الميدانية</div>
+    </div>
+    <div class="lf"><label>اسم المستخدم</label><input type="text" id="loginUser" placeholder="اسم الدخول" autocomplete="username"></div>
+    <div class="lf"><label>كلمة المرور</label><input type="password" id="loginPass" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"></div>
+    <button class="login-btn" onclick="doLogin()">🔐 دخول</button>
+    <div class="login-err" id="loginErr">❌ بيانات غير صحيحة</div>
+    <div style="text-align:center;color:#94a3b8;font-size:.68rem;margin-top:14px;padding-top:12px;border-top:1px solid #f1f5f9;">الحساب الافتراضي: <strong>admin</strong> / <strong>admin123</strong></div>
+  </div>
+</div>
+
+<div id="app">
+  <header class="app-hdr">
+    <div class="hdr-brand">
+      <div class="hdr-ico">🔧</div>
+      <div><div class="hdr-title">O&M Field</div><div class="hdr-sub">الفني الميداني</div></div>
+    </div>
+    <div class="hdr-user">
+      <div class="hdr-av" id="userAv">ف</div>
+      <button class="logout-btn" onclick="doLogout()">خروج</button>
+    </div>
+  </header>
+
+  <div class="main-content">
+
+    <!-- CAPTURE -->
+    <div class="view active" id="view-capture">
+      <div class="capture-card">
+        <div class="card-title">📋 بيانات العمل</div>
+        <div class="mf"><label>المشروع</label><select id="projSelect"><option value="">— اختر المشروع —</option></select></div>
+        <div class="mf">
+          <label>تصنيف الأعمال</label>
+          <div class="wtype-grid">
+            <button class="wtype-btn" id="wt-p" onclick="setWT('p')">🟢 وقائية</button>
+            <button class="wtype-btn" id="wt-c" onclick="setWT('c')">🟡 تصحيحية</button>
+            <button class="wtype-btn" id="wt-e" onclick="setWT('e')">🔴 طارئة</button>
+            <button class="wtype-btn" id="wt-i" onclick="setWT('i')">🔵 فحص</button>
+          </div>
+        </div>
+        <div class="mf"><label>ملخص الأعمال المنجزة</label><textarea id="workDesc" placeholder="اكتب وصفاً للأعمال التي قمت بها..."></textarea></div>
+      </div>
+
+      <div class="capture-card">
+        <div class="card-title">📸 التقاط الصور</div>
+        <div id="captureHint" style="display:none;background:#dbeafe;border:1px solid #93c5fd;border-radius:9px;padding:9px 12px;margin-bottom:10px;font-size:.75rem;color:#1e40af;text-align:center;font-weight:600;"></div>
+        <div class="cam-zone" onclick="document.getElementById('cameraInput').click()">
+          <div class="cam-ico">📷</div>
+          <p>اضغط لالتقاط صورة</p>
+          <small>يُسجَّل الوقت والتاريخ تلقائياً</small>
+        </div>
+        <div class="cam-zone-or"><span>أو</span></div>
+        <div class="cam-actions">
+          <button class="cam-btn cam-camera" onclick="document.getElementById('cameraInput').click()">📷 كاميرا</button>
+          <button class="cam-btn cam-gallery" onclick="document.getElementById('galleryInput').click()">🖼️ المعرض</button>
+        </div>
+        <div class="photos-preview" id="photosPreview"></div>
+      </div>
+
+      <div class="send-section">
+        <div class="card-title">📤 إرسال التقرير</div>
+        <div class="send-summary">
+          <div class="ss-item"><div class="ss-ico">🏗️</div><div class="ss-lbl">المشروع</div><div class="ss-val" id="ss-proj">—</div></div>
+          <div class="ss-item"><div class="ss-ico">📸</div><div class="ss-lbl">الصور</div><div class="ss-val" id="ss-photos">0 صورة</div></div>
+          <div class="ss-item"><div class="ss-ico">🕐</div><div class="ss-lbl">الوقت</div><div class="ss-val" id="ss-time">—</div></div>
+          <div class="ss-item"><div class="ss-ico">👤</div><div class="ss-lbl">الفني</div><div class="ss-val" id="ss-user">—</div></div>
+        </div>
+        <button class="send-btn" id="sendBtn" onclick="sendReport()">📤 إرسال للنظام (نفس الجهاز)</button>
+        <div style="margin-top:10px;display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <button onclick="exportJSON()" style="padding:13px;background:linear-gradient(135deg,#3b82f6,#2563eb);color:#fff;border:none;border-radius:12px;font-family:Cairo,sans-serif;font-weight:700;font-size:.82rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 4px 14px rgba(59,130,246,.35);">📤 تصدير JSON<br><small style="font-weight:400;font-size:.65rem;">(لأجهزة أخرى)</small></button>
+          <button onclick="shareWhatsApp()" style="padding:13px;background:linear-gradient(135deg,#25d366,#1da851);color:#fff;border:none;border-radius:12px;font-family:Cairo,sans-serif;font-weight:700;font-size:.82rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 4px 14px rgba(37,211,102,.35);">💬 إرسال WhatsApp</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- HISTORY -->
+    <div class="view" id="view-history">
+      <div class="card-title" style="padding:4px 0 12px;">📋 تقاريري المرسلة</div>
+      <div id="histList"></div>
+    </div>
+
+    <!-- STATUS -->
+    <div class="view" id="view-status">
+      <div class="status-card">
+        <div class="sc-title">🌐 حالة الاتصال</div>
+        <div class="connection-status cs-online" id="connStatus">
+          <div class="cs-dot cs-dot-on" id="connDot"></div>
+          <div><div class="cs-text cs-text-on" id="connText">متصل بالإنترنت</div><div style="font-size:.64rem;color:var(--mt);margin-top:2px;" id="connSub">البيانات تُرسل مباشرة</div></div>
+        </div>
+        <div class="stat-grid" id="statusStats"></div>
+      </div>
+
+      <div class="status-card">
+        <div class="sc-title">ℹ️ معلومات التطبيق</div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--bd);"><span style="font-size:.76rem;color:var(--mt);">الإصدار</span><span style="font-size:.76rem;font-weight:700;">O&M Field v1.0</span></div>
+          <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--bd);"><span style="font-size:.76rem;color:var(--mt);">النظام الرئيسي</span><span style="font-size:.76rem;font-weight:700;color:#3b82f6;">O&M Pro v5</span></div>
+          <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--bd);"><span style="font-size:.76rem;color:var(--mt);">التخزين</span><span style="font-size:.76rem;font-weight:700;" id="storageUsed">0 KB</span></div>
+          <div style="display:flex;justify-content:space-between;padding:8px 0;"><span style="font-size:.76rem;color:var(--mt);">المستخدم</span><span style="font-size:.76rem;font-weight:700;" id="currentUserInfo">—</span></div>
+        </div>
+      </div>
+
+      <div class="status-card">
+        <div class="sc-title">📖 كيفية الاستخدام</div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <div style="display:flex;align-items:flex-start;gap:10px;padding:10px;background:#f8fafc;border-radius:9px;border:1px solid #e2e8f0;"><span style="font-size:20px;flex-shrink:0;">1️⃣</span><div><div style="font-weight:700;font-size:.76rem;color:var(--pr);">اختر المشروع وحدد نوع العمل</div></div></div>
+          <div style="display:flex;align-items:flex-start;gap:10px;padding:10px;background:#f8fafc;border-radius:9px;border:1px solid #e2e8f0;"><span style="font-size:20px;flex-shrink:0;">2️⃣</span><div><div style="font-weight:700;font-size:.76rem;color:var(--pr);">التقط صور الأعمال من الكاميرا</div><div style="font-size:.68rem;color:var(--mt);margin-top:2px;">الوقت والتاريخ يُسجَّلان تلقائياً مع كل صورة</div></div></div>
+          <div style="display:flex;align-items:flex-start;gap:10px;padding:10px;background:#f8fafc;border-radius:9px;border:1px solid #e2e8f0;"><span style="font-size:20px;flex-shrink:0;">3️⃣</span><div><div style="font-weight:700;font-size:.76rem;color:var(--pr);">اكتب ملخص الأعمال المنجزة</div></div></div>
+          <div style="display:flex;align-items:flex-start;gap:10px;padding:10px;background:#dbeafe;border-radius:9px;border:1px solid #93c5fd;"><span style="font-size:20px;flex-shrink:0;">4️⃣</span><div><div style="font-weight:700;font-size:.76rem;color:#1e40af;">صدِّر ملف JSON للمهندس</div><div style="font-size:.68rem;color:#1d4ed8;margin-top:2px;">اضغط "تصدير JSON" ثم أرسله عبر واتساب أو إيميل</div></div></div>
+          <div style="display:flex;align-items:flex-start;gap:10px;padding:10px;background:#f0fdf4;border-radius:9px;border:1px solid #bbf7d0;"><span style="font-size:20px;flex-shrink:0;">5️⃣</span><div><div style="font-weight:700;font-size:.76rem;color:#166534;">المهندس يستورد الملف في O&M Pro</div><div style="font-size:.68rem;color:#4d7c0f;margin-top:2px;">تبويب "صور الميدان" ← استيراد JSON ← اختر الصور المناسبة ← إنشاء تقرير</div></div></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <nav class="tab-bar">
+    <button class="tab-btn active" id="tab-capture" onclick="showTab('capture')"><span class="tab-ico">📷</span><span class="tab-lbl">تصوير</span></button>
+    <button class="tab-btn" id="tab-history" onclick="showTab('history')"><span class="tab-ico">📋</span><span class="tab-lbl">سجل</span></button>
+    <button class="tab-btn" id="tab-status" onclick="showTab('status')"><span class="tab-ico">📊</span><span class="tab-lbl">الحالة</span></button>
+  </nav>
+</div>
+
+<div class="up-overlay" id="upOverlay">
+  <div class="up-box"><div class="up-ico">📤</div><div class="up-title">جارٍ الإرسال</div><div class="up-sub" id="upSub">يتم الحفظ...</div><div class="up-prog"><div class="up-prog-fill" id="upProgFill" style="width:0%"></div></div></div>
+</div>
+<div class="toast" id="toast"></div>
+<input type="file" id="cameraInput" accept="image/*" capture="environment" multiple>
+<input type="file" id="galleryInput" accept="image/*" multiple>
+
+<script>
+const SK_USERS='om_users',SK_PROJECTS='om_projects',SK_HISTORY='om_history',SK_FIELD='om_field_reports';
+const CLS={p:{label:'صيانة وقائية',color:'#10b981'},c:{label:'صيانة تصحيحية',color:'#f59e0b'},e:{label:'صيانة طارئة',color:'#ef4444'},i:{label:'فحص وتفتيش',color:'#3b82f6'}};
+function LS(k){try{return JSON.parse(localStorage.getItem(k)||'[]')}catch{return []}}
+function SS(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+let ST={user:null,photos:[],wt:'p'};
+
+function doLogin(){
+  const u=document.getElementById('loginUser').value.trim();
+  const p=document.getElementById('loginPass').value;
+  if(!u||!p){document.getElementById('loginErr').textContent='❌ أدخل اسم المستخدم وكلمة المرور';document.getElementById('loginErr').style.display='block';return;}
+  let users=LS(SK_USERS);
+  // If no users exist at all, create default admin
+  if(!users.length){
+    users=[{id:1,name:'مدير النظام',username:'admin',password:'admin123',role:'admin',allowedProjs:'all'}];
+    SS(SK_USERS,users);
+  }
+  const user=users.find(x=>x.username===u&&x.password===p);
+  if(!user){
+    document.getElementById('loginErr').textContent='❌ اسم المستخدم أو كلمة المرور غير صحيحة';
+    document.getElementById('loginErr').style.display='block';
+    return;
+  }
+  ST.user=user;
+  document.getElementById('loginScreen').style.display='none';
+  document.getElementById('app').classList.add('show');
+  document.getElementById('userAv').textContent=user.name.charAt(0);
+  document.getElementById('ss-user').textContent=user.name;
+  document.getElementById('currentUserInfo').textContent=user.name;
+  loadProjects(); updateClock(); setInterval(updateClock,60000); setWT('p');
+  renderHistory(); renderStatusStats();
+  showToast('👋 مرحباً '+user.name);
+}
+function doLogout(){ST.user=null;ST.photos=[];document.getElementById('app').classList.remove('show');document.getElementById('loginScreen').style.display='flex';document.getElementById('loginUser').value='';document.getElementById('loginPass').value='';}
+
+function loadProjects(){
+  const projs=LS(SK_PROJECTS);
+  const sel=document.getElementById('projSelect');
+  sel.innerHTML='<option value="">— اختر المشروع —</option>';
+  const allowed=ST.user?.allowedProjs;
+  const role=ST.user?.role;
+  // admin OR allowedProjs='all' OR no restriction set (legacy) → show all
+  const noRestriction = role==='admin' || allowed==='all' || !allowed || (Array.isArray(allowed)&&allowed.length===0);
+  const filtered = noRestriction ? projs : projs.filter(p=>Array.isArray(allowed)&&allowed.includes(p.id));
+  filtered.forEach(p=>{const opt=document.createElement('option');opt.value=p.name;opt.textContent=p.name+(p.location?' — '+p.location:'');sel.appendChild(opt);});
+  sel.addEventListener('change',()=>{document.getElementById('ss-proj').textContent=sel.value||'—';});
+}
+function updateClock(){document.getElementById('ss-time').textContent=new Date().toLocaleString('ar-SA',{weekday:'short',hour:'2-digit',minute:'2-digit'});}
+function setWT(k){ST.wt=k;['p','c','e','i'].forEach(x=>{document.getElementById('wt-'+x).className='wtype-btn'+(x===k?' active-'+k:'');});}
+
+document.getElementById('cameraInput').addEventListener('change',e=>handleFiles(e.target.files));
+document.getElementById('galleryInput').addEventListener('change',e=>handleFiles(e.target.files));
+
+function handleFiles(files){
+  const arr=Array.from(files).filter(f=>f.type.startsWith('image/'));
+  if(ST.photos.length+arr.length>20){showToast('⚠️ الحد الأقصى 20 صورة');return;}
+  let done=0;
+  arr.forEach(file=>{
+    const reader=new FileReader();
+    const capturedAt=new Date().toISOString();
+    reader.onload=ev=>{
+      ST.photos.push({dataUrl:ev.target.result,name:file.name,capturedAt,note:''});
+      done++;
+      if(done===arr.length){renderPhotos();updateSendSummary();}
+    };
+    reader.readAsDataURL(file);
+  });
+}
+function removePhoto(idx){ST.photos.splice(idx,1);renderPhotos();updateSendSummary();}
+function updateNote(idx,val){if(ST.photos[idx])ST.photos[idx].note=val;}
+function renderPhotos(){
+  const wrap=document.getElementById('photosPreview');
+  document.getElementById('ss-photos').textContent=ST.photos.length+' صورة';
+  if(!ST.photos.length){wrap.innerHTML='';return;}
+  wrap.innerHTML=ST.photos.map((ph,i)=>{
+    const t=new Date(ph.capturedAt).toLocaleString('ar-SA',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+    return `<div class="ph-item"><img src="${ph.dataUrl}"><div class="ph-overlay"></div><div class="ph-num">${i+1}</div><div class="ph-ts">📅 ${t}</div><button class="ph-rm" onclick="removePhoto(${i})">✕</button><div class="ph-note"><input placeholder="ملاحظة..." value="${ph.note||''}" oninput="updateNote(${i},this.value)"></div></div>`;
+  }).join('');
+}
+function updateSendSummary(){document.getElementById('ss-photos').textContent=ST.photos.length+' صورة';document.getElementById('ss-proj').textContent=document.getElementById('projSelect').value||'—';}
+
+async function sendReport(){
+  const proj=document.getElementById('projSelect').value;
+  if(!proj){showToast('⚠️ الرجاء اختيار المشروع');return;}
+  if(!ST.photos.length){showToast('⚠️ الرجاء إضافة صورة واحدة');return;}
+  const overlay=document.getElementById('upOverlay'),fill=document.getElementById('upProgFill'),sub=document.getElementById('upSub');
+  overlay.classList.add('show');
+  try{
+    fill.style.width='20%';sub.textContent='ضغط الصور...';
+    const sorted=[...ST.photos].sort((a,b)=>new Date(a.capturedAt)-new Date(b.capturedAt));
+    const compressed=[];
+    for(let i=0;i<sorted.length;i++){
+      fill.style.width=Math.round(20+i/sorted.length*55)+'%';
+      sub.textContent=`ضغط الصورة ${i+1}/${sorted.length}...`;
+      const c=await compressImg(sorted[i].dataUrl,600);
+      compressed.push({dataUrl:c,name:sorted[i].name,capturedAt:sorted[i].capturedAt,note:sorted[i].note});
+    }
+    fill.style.width='80%';sub.textContent='حفظ في النظام...';
+    const entry={id:Date.now(),project:proj,reportTitle:`تقرير ميداني — ${proj}`,engineer:ST.user?.name||'',wc:ST.wt,date:new Date().toISOString().split('T')[0],dateDisplay:new Date().toLocaleDateString('ar-SA',{weekday:'long',year:'numeric',month:'long',day:'numeric'}),images:sorted.length,workers:0,workersList:[],metersList:[],progress:100,workSummary:document.getElementById('workDesc').value,summary:document.getElementById('workDesc').value,recos:[],captions:sorted.map((ph,i)=>({title:`صورة ${i+1} — ${new Date(ph.capturedAt).toLocaleString('ar-SA',{hour:'2-digit',minute:'2-digit'})}`,desc:ph.note||'',reco:'',equipment:'',priority:'',status:'مكتمل'})),imageDataUrls:compressed,savedAt:Date.now(),savedBy:ST.user?.name||'',source:'field'};
+    const hist=LS(SK_HISTORY); hist.unshift(entry); SS(SK_HISTORY,hist.slice(0,100));
+    const fr=LS(SK_FIELD); fr.unshift({id:entry.id,project:proj,date:entry.date,photos:sorted.length,user:ST.user?.name,wt:ST.wt,summary:entry.summary}); SS(SK_FIELD,fr.slice(0,200));
+    fill.style.width='100%';sub.textContent='تم ✓';
+    await new Promise(r=>setTimeout(r,700));
+    ST.photos=[]; document.getElementById('workDesc').value='';
+    renderPhotos();updateSendSummary();renderHistory();renderStatusStats();
+    showToast('✅ تم إرسال التقرير بنجاح!');
+  }catch(e){console.error(e);showToast('❌ خطأ في الإرسال');}
+  finally{setTimeout(()=>{overlay.classList.remove('show');fill.style.width='0%';},800);}
+}
+
+async function compressImg(dataUrl,maxW=600){
+  return new Promise(resolve=>{
+    const img=new Image();
+    img.onload=()=>{const c=document.createElement('canvas');const s=Math.min(1,maxW/img.width);c.width=img.width*s;c.height=img.height*s;c.getContext('2d').drawImage(img,0,0,c.width,c.height);resolve(c.toDataURL('image/jpeg',.7));};
+    img.onerror=()=>resolve(dataUrl);img.src=dataUrl;
+  });
+}
+
+function renderHistory(){
+  const rpts=LS(SK_FIELD).filter(r=>r.user===ST.user?.name||ST.user?.role==='admin');
+  const list=document.getElementById('histList');
+  if(!rpts.length){list.innerHTML=`<div class="hi-empty"><div class="hi-empty-ico">📋</div><div style="font-weight:700;color:#64748b;">لا توجد تقارير بعد</div></div>`;return;}
+  const hist=LS(SK_HISTORY);
+  list.innerHTML=rpts.map(r=>{
+    const cls=CLS[r.wt]||CLS.i;
+    const full=hist.find(h=>h.id===r.id);
+    const imgs=(full?.imageDataUrls||[]).slice(0,4);
+    return `<div class="hist-item"><div class="hi-header"><div><div class="hi-proj">${r.project}</div><div class="hi-date">${r.date}</div></div><div class="hi-cls" style="background:${cls.color}22;color:${cls.color};">${cls.label}</div></div>${r.summary?`<div style="font-size:.74rem;color:#475569;margin:6px 0;padding:8px;background:#f8fafc;border-radius:7px;">${r.summary}</div>`:''}<div class="hi-stats"><div class="hi-stat">📸 <strong>${r.photos}</strong></div><div class="hi-stat">👤 <strong>${r.user||'—'}</strong></div></div>${imgs.length?`<div class="hi-photos">${imgs.map(img=>`<img class="hi-photo" src="${typeof img==='object'?img.dataUrl:img}">`).join('')}</div>`:''}</div>`;
+  }).join('');
+}
+
+function renderStatusStats(){
+  const rpts=LS(SK_FIELD);
+  const myRpts=rpts.filter(r=>r.user===ST.user?.name||ST.user?.role==='admin');
+  const today=new Date().toISOString().split('T')[0];
+  document.getElementById('statusStats').innerHTML=`<div class="stat-box"><div class="stat-val">${myRpts.length}</div><div class="stat-lbl">إجمالي تقاريري</div></div><div class="stat-box"><div class="stat-val" style="color:#10b981;">${myRpts.filter(r=>r.date===today).length}</div><div class="stat-lbl">تقارير اليوم</div></div><div class="stat-box"><div class="stat-val">${myRpts.reduce((s,r)=>s+(r.photos||0),0)}</div><div class="stat-lbl">صور مرفوعة</div></div><div class="stat-box"><div class="stat-val">${LS(SK_PROJECTS).length}</div><div class="stat-lbl">المشاريع</div></div>`;
+  let tb=0;try{for(let k in localStorage)if(localStorage.hasOwnProperty(k))tb+=localStorage[k].length*2;}catch{}
+  document.getElementById('storageUsed').textContent=tb>1048576?(tb/1048576).toFixed(1)+' MB':(tb/1024).toFixed(0)+' KB';
+  const on=navigator.onLine;
+  document.getElementById('connStatus').className='connection-status '+(on?'cs-online':'cs-offline');
+  document.getElementById('connDot').className='cs-dot '+(on?'cs-dot-on':'cs-dot-off');
+  document.getElementById('connText').className='cs-text '+(on?'cs-text-on':'cs-text-off');
+  document.getElementById('connText').textContent=on?'متصل بالإنترنت':'غير متصل — الحفظ محلياً';
+}
+
+function showTab(name){document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));document.getElementById('view-'+name).classList.add('active');document.getElementById('tab-'+name).classList.add('active');if(name==='history')renderHistory();if(name==='status')renderStatusStats();}
+
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3200);}
+
+window.addEventListener('online',()=>{renderStatusStats();showToast('✅ متصل بالإنترنت');});
+window.addEventListener('offline',()=>{renderStatusStats();showToast('⚠️ انقطع الاتصال');});
+
+if('serviceWorker' in navigator){const sw=`const C='omf-v1';self.addEventListener('install',e=>e.waitUntil(caches.open(C).then(c=>c.addAll([self.location.href]))));self.addEventListener('fetch',e=>e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request).catch(()=>caches.match(e.request)))));`;const blob=new Blob([sw],{type:'application/javascript'});navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(()=>{});}
+
+function exportJSON(){
+  const proj=document.getElementById('projSelect').value;
+  if(!proj){showToast('⚠️ اختر المشروع أولاً');return;}
+  if(!ST.photos.length){showToast('⚠️ أضف صوراً أولاً');return;}
+  const sorted=[...ST.photos].sort((a,b)=>new Date(a.capturedAt)-new Date(b.capturedAt));
+  const entry={
+    id:Date.now(),
+    project:proj,
+    reportTitle:'تقرير ميداني — '+proj,
+    engineer:ST.user?.name||'',
+    wc:ST.wt,
+    date:new Date().toISOString().split('T')[0],
+    dateDisplay:new Date().toLocaleDateString('ar-SA',{weekday:'long',year:'numeric',month:'long',day:'numeric'}),
+    images:sorted.length,
+    photos:sorted.length,
+    workers:0,
+    workersList:[],
+    metersList:[],
+    progress:100,
+    workSummary:document.getElementById('workDesc').value,
+    summary:document.getElementById('workDesc').value,
+    recos:[],
+    captions:sorted.map((ph,i)=>({title:'صورة '+(i+1)+' — '+new Date(ph.capturedAt).toLocaleTimeString('ar-SA',{hour:'2-digit',minute:'2-digit'}),desc:ph.note||'',reco:'',equipment:'',priority:'',status:'مكتمل'})),
+    imageDataUrls:sorted.map(ph=>({dataUrl:ph.dataUrl,name:ph.name,capturedAt:ph.capturedAt,note:ph.note})),
+    savedAt:Date.now(),
+    savedBy:ST.user?.name||'',
+    user:ST.user?.name||'',
+    source:'field',
+  };
+  const json=JSON.stringify([entry],null,2);
+  const blob=new Blob([json],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download='field_report_'+proj.replace(/\s+/g,'_')+'_'+new Date().toLocaleDateString('ar-SA').replace(/\//g,'-')+'.json';
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('✅ تم تصدير الملف — أرسله إلى المهندس');
+}
+
+function shareWhatsApp(){
+  const proj=document.getElementById('projSelect').value||'المشروع';
+  const desc=document.getElementById('workDesc').value||'';
+  const cls=CLS[ST.wt]||CLS.i;
+  const msg='📱 *تقرير ميداني — '+proj+'*\n━━━━━━━━━━━\n🏷️ *التصنيف:* '+cls.label+'\n📸 *الصور:* '+ST.photos.length+' صورة\n👤 *الفني:* '+(ST.user?.name||'')+'\n📅 *التاريخ:* '+new Date().toLocaleDateString('ar-SA')+(desc?'\n\n📝 *الأعمال:*\n'+desc:'')+'\n━━━━━━━━━━━\n_أرسَل عبر O&M Field_';
+  window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank');
+}
+
+</script>
+</body>
+</html>
