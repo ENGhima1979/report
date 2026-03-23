@@ -197,8 +197,9 @@ html{background:#0a2540;}
   <button class="setup-btn" id="setupBtn" onclick="doSetup()">🔗 ربط وبدء المزامنة</button>
   <div class="msg msg-err" id="setupErr"></div>
   <div class="msg msg-ok" id="setupOk"></div>
-  <div style="text-align:center;margin-top:12px;">
-    <button onclick="skipSetup()" style="background:none;border:none;color:var(--mt);font-family:Cairo,sans-serif;font-size:.7rem;cursor:pointer;text-decoration:underline;">تخطّي — بدون مزامنة</button>
+  <div style="text-align:center;margin-top:12px;display:flex;flex-direction:column;gap:7px;">
+    <button onclick="skipSetup()" style="background:none;border:none;color:var(--mt);font-family:Cairo,sans-serif;font-size:.7rem;cursor:pointer;text-decoration:underline;">تخطّي الآن — بدون مزامنة</button>
+    <button onclick="hardReset()" style="background:#fee2e2;border:1px solid #fca5a5;color:#dc2626;border-radius:7px;padding:6px 12px;font-family:Cairo,sans-serif;font-size:.68rem;cursor:pointer;font-weight:600;">🗑️ مسح جميع البيانات وإعادة الضبط</button>
   </div>
 </div>
 </div>
@@ -216,6 +217,9 @@ html{background:#0a2540;}
   <button class="login-btn" onclick="doLogin()">🔐 دخول</button>
   <div class="msg msg-err" id="loginErr" style="display:none;margin-top:9px;"></div>
   <div class="sync-badge" id="loginSyncBadge"><div class="dot dot-or" id="lsBadgeDot"></div><span id="lsBadgeTxt">جارٍ الاتصال...</span></div>
+  <div style="text-align:center;margin-top:14px;padding-top:12px;border-top:1px solid var(--bd);">
+    <button onclick="showSetupFromLogin()" style="background:none;border:none;color:var(--info);font-family:Cairo,sans-serif;font-size:.72rem;cursor:pointer;font-weight:600;">⚙️ إعادة إعداد المزامنة / تغيير الـ Token</button>
+  </div>
 </div>
 </div>
 
@@ -238,7 +242,16 @@ html{background:#0a2540;}
     <div class="view active" id="v-capture">
       <div class="card">
         <div class="card-title">📋 بيانات العمل</div>
-        <div class="mf"><label>المشروع</label><select id="projSel"><option value="">— اختر المشروع —</option></select></div>
+        <div class="mf">
+          <label style="display:flex;align-items:center;justify-content:space-between;">
+            المشروع
+            <button onclick="pullAndReload()" style="background:#dbeafe;border:1px solid #93c5fd;color:#1e40af;border-radius:6px;padding:3px 9px;font-family:Cairo,sans-serif;font-size:.62rem;font-weight:600;cursor:pointer;">🔄 تحديث قائمة المشاريع</button>
+          </label>
+          <select id="projSel"><option value="">— اختر المشروع —</option></select>
+          <div id="projHint" style="display:none;background:#fff7ed;border:1px solid #fed7aa;border-radius:7px;padding:8px 10px;margin-top:6px;font-size:.7rem;color:#92400e;">
+            ⚠️ لا توجد مشاريع — اضغط "تحديث" أو تأكد أن المهندس حفظ المشاريع في O&M Pro وفتح تبويب "صور الميدان"
+          </div>
+        </div>
         <div class="mf"><label>تصنيف الأعمال</label>
           <div class="wt-grid">
             <button class="wt" id="wtp" onclick="setWT('p')">🟢 وقائية</button>
@@ -380,7 +393,8 @@ async function patchGist(files){
 // ════════════════════════════════════
 window.addEventListener('DOMContentLoaded',()=>{
   const s=LS(SK.SETUP);
-  if(!s){
+  // Show setup if: no setup data, OR setup was skipped, OR token is missing
+  if(!s || !s.token || s.skipped){
     document.getElementById('setupScreen').style.display='flex';
     return;
   }
@@ -388,8 +402,7 @@ window.addEventListener('DOMContentLoaded',()=>{
   document.getElementById('setupScreen').style.display='none';
   document.getElementById('loginScreen').style.display='flex';
   document.getElementById('loginOrg').textContent=G.org;
-  setSyncUI(G.token?'ok':'off', G.token?'مزامنة مفعّلة':'بدون مزامنة');
-  // Pull shared data (users, projects) before login
+  setSyncUI('ok','مزامنة مفعّلة');
   if(G.token&&G.gistId) pullShared().catch(()=>{});
 });
 
@@ -435,11 +448,34 @@ async function doSetup(){
   }
 }
 
+function hardReset(){
+  if(!confirm('سيتم مسح جميع بيانات التطبيق المحلية وإعادة الضبط. هل أنت متأكد؟')) return;
+  const keysToKeep=[]; // keep nothing
+  Object.keys(localStorage).forEach(k=>localStorage.removeItem(k));
+  location.reload();
+}
+
+function showSetupFromLogin(){
+  // Clear old setup data so setup screen shows fresh
+  localStorage.removeItem(SK.SETUP);
+  localStorage.removeItem(SK.GIST_ID);
+  G.token=null; G.gistId=null;
+  document.getElementById('loginScreen').style.display='none';
+  document.getElementById('setupScreen').style.display='flex';
+  // Pre-fill org name if known
+  const org=document.getElementById('orgN');
+  if(org&&G.org&&G.org!=='O&M Field') org.value=G.org;
+}
+
 function skipSetup(){
-  SS(SK.SETUP,{token:null,org:'O&M Field',skipped:true});
+  // Don't save token:null — save a flag so next reload still shows setup
+  // unless user explicitly skips again
+  G.org='O&M Field';
   document.getElementById('setupScreen').style.display='none';
   document.getElementById('loginScreen').style.display='flex';
-  setSyncUI('off','بدون مزامنة');
+  setSyncUI('off','بدون مزامنة — اضغط "إعادة الإعداد" لتفعيلها');
+  showToast('⚠️ تعمل بدون مزامنة');
+  // Don't save to SK.SETUP so next reload shows setup again
 }
 
 // ════════════════════════════════════
@@ -527,6 +563,17 @@ function setSyncUI(state,text){
 // ════════════════════════════════════
 // LOGIN
 // ════════════════════════════════════
+async function pullAndReload(){
+  showToast('⏳ جارٍ تحديث المشاريع من السحابة...');
+  await pullShared().catch(e=>showToast('❌ '+e.message));
+  loadProjects();
+  // Show hint if still no projects
+  const projs=LSA(SK.PROJECTS);
+  const hint=document.getElementById('projHint');
+  if(hint) hint.style.display=projs.length?'none':'block';
+  if(projs.length) showToast('✅ تم تحديث المشاريع: '+projs.length+' مشروع');
+}
+
 function doLogin(){
   const u=document.getElementById('lusr').value.trim();
   const p=document.getElementById('lpas').value;
@@ -664,6 +711,9 @@ function loadProjects(){
     const o=document.createElement('option');o.value=p.name;o.textContent=p.name+(p.location?' — '+p.location:'');sel.appendChild(o);
   });
   sel.onchange=()=>updateSum();
+  // Show/hide hint
+  const hint=document.getElementById('projHint');
+  if(hint) hint.style.display=(all?projs:projs.filter(p=>Array.isArray(al)&&al.includes(p.id))).length?'none':'block';
 }
 function setWT(k){G.wt=k;['p','c','e','i'].forEach(x=>{document.getElementById('wt'+x).className='wt'+(x===k?' a'+x:'');});}
 function updateClock(){document.getElementById('ss-t').textContent=new Date().toLocaleString('ar-SA',{weekday:'short',hour:'2-digit',minute:'2-digit'});}
